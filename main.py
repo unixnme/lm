@@ -14,7 +14,7 @@ def single_epoch(model:Network, loader:DataLoader, optimizer:Optimizer, loss_fn:
         param.requires_grad = train
 
     total_loss = 0
-    for x, target in tqdm(loader):
+    for x, target in (loader):
         if train:
             model.zero_grad()
         pred = model(x)
@@ -37,6 +37,8 @@ def main():
     parser = argparse.ArgumentParser('LM main')
     parser.add_argument('--corpus', type=str, default='tiny_corpus.txt', help='corpus to train')
     parser.add_argument('--batch_size', type=int, default=100)
+    parser.add_argument('--emb_dim', type=int, default=128)
+    parser.add_argument('--num_layers', type=int, default=1)
     parser.add_argument('--num_workers', type=int, default=4)
     parser.add_argument('--lr', type=float, default=0.1)
     parser.add_argument('--momentum', type=float, default=.99)
@@ -46,8 +48,8 @@ def main():
 
     corpus = Corpus(args.corpus)
     loader = CorpusLoader(corpus, args.batch_size, True, args.num_workers)
-    extractor = EmbeddingExtractor(corpus.vocab, 64, args.device)
-    network = Network(extractor).to(args.device)
+    extractor = EmbeddingExtractor(corpus.vocab, args.emb_dim, args.device)
+    network = Network(extractor, args.num_layers).to(args.device)
     optimizer = torch.optim.SGD(network.parameters(), args.lr, args.momentum)
     loss_fn = torch.nn.CrossEntropyLoss(reduction='none')
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=10, verbose=True)

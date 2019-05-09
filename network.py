@@ -4,11 +4,12 @@ from extractor import Extractor
 from utils import unpack
 
 class Network(torch.nn.Module):
-    def __init__(self, extractor:Extractor):
+    def __init__(self, extractor:Extractor, num_layers:int):
         super(Network, self).__init__()
         self.extractor = extractor
         self.rnn = torch.nn.GRU(self.extractor.emb_dim,
                                 self.extractor.emb_dim,
+                                num_layers
                                 )
         self.linear = torch.nn.Linear(self.extractor.emb_dim,
                                       len(self.extractor.vocab),
