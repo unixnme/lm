@@ -8,6 +8,7 @@ from torch.optim import Optimizer
 from tqdm import tqdm
 import numpy as np
 
+
 def single_epoch(model:Network, loader:DataLoader, optimizer:Optimizer, loss_fn:torch.nn.Module, train:bool=True):
     for param in model.parameters():
         param.requires_grad = train
@@ -18,17 +19,19 @@ def single_epoch(model:Network, loader:DataLoader, optimizer:Optimizer, loss_fn:
             model.zero_grad()
         pred = model(x)
         target = model.extractor.get_packed_sequence(target)
-        loss = loss_fn(pred.data, target.data).sum()
+        loss = loss_fn(pred.data, target.data).mean()
         if train:
             loss.backward()
             optimizer.step()
         total_loss += loss.item()
 
-    print(total_loss)
+    return total_loss
+
 
 def generate(model:Network, words:list):
     pred = model([words], to_str=True)
     return pred[0]
+
 
 def main():
     parser = argparse.ArgumentParser('LM main')
@@ -47,6 +50,7 @@ def main():
     network = Network(extractor).to(args.device)
     optimizer = torch.optim.SGD(network.parameters(), args.lr, args.momentum)
     loss_fn = torch.nn.CrossEntropyLoss(reduction='none')
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=10, verbose=True)
 
     for epoch in range(args.epochs):
         idx = np.random.randint(len(corpus))
@@ -55,7 +59,9 @@ def main():
         print(' '.join(pred))
         print(' '.join(target))
 
-        single_epoch(network, loader, optimizer, loss_fn)
+        loss = single_epoch(network, loader, optimizer, loss_fn)
+        print(loss)
+        scheduler.step(loss)
 
 
 if __name__ == '__main__':
