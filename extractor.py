@@ -31,12 +31,13 @@ class EmbeddingExtractor(Extractor):
 
 
 if __name__ == '__main__':
-    from corpus import Corpus
-    from torch.utils.data import DataLoader
+    from corpus import Corpus, CorpusLoader
 
-    corpus_file = 'corpus.txt'
+    corpus_file = 'tiny_corpus.txt'
     corpus = Corpus(corpus_file)
-    dataloader = DataLoader(corpus, batch_size=2)
+    loader = CorpusLoader(corpus, 100, False, 0)
     extractor = EmbeddingExtractor(corpus.vocab, 64, 'cpu')
-    for x in dataloader:
-        print(extractor(x))
+    print(corpus.vocab)
+    for x,y in loader:
+        pack = extractor(x)
+        print(len(x), pack.data.shape)

@@ -27,13 +27,14 @@ class CorpusLoader(DataLoader):
         super(CorpusLoader, self).__init__(corpus, batch_size, shuffle, num_workers=num_workers, collate_fn=self.collate_fn)
 
     def collate_fn(self, batch:list):
+        batch.sort(key=lambda x: len(x[0]), reverse=True)
         return list(zip(*batch))
 
 
 if __name__ == '__main__':
-    corpus_file = 'corpus.txt'
+    corpus_file = 'tiny_corpus.txt'
     corpus = Corpus(corpus_file)
-    loader = CorpusLoader(corpus, 3, False, 2)
+    loader = CorpusLoader(corpus, 100, False, 0)
     print(corpus.vocab)
     for x,y in loader:
         for i,o in zip(x,y):
