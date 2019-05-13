@@ -5,11 +5,12 @@ import argparse
 import torch
 from torch.utils.data import DataLoader
 from torch.optim import Optimizer
+from torch.nn.utils import clip_grad_norm_
 from tqdm import tqdm
 import numpy as np
 
 
-def single_epoch(model:Network, loader:DataLoader, optimizer:Optimizer, loss_fn:torch.nn.Module, train:bool=True):
+def single_epoch(model:Network, loader:DataLoader, optimizer:Optimizer, loss_fn:torch.nn.Module, norm:float, train:bool=True):
     for param in model.parameters():
         param.requires_grad = train
 
@@ -22,6 +23,7 @@ def single_epoch(model:Network, loader:DataLoader, optimizer:Optimizer, loss_fn:
         loss = loss_fn(pred.data, target.data).mean()
         if train:
             loss.backward()
+            clip_grad_norm_(model.parameters(), norm)
             optimizer.step()
         total_loss += loss.item()
 
@@ -54,6 +56,7 @@ def main():
     parser.add_argument('--num_workers', type=int, default=4)
     parser.add_argument('--lr', type=float, default=0.1)
     parser.add_argument('--momentum', type=float, default=.99)
+    parser.add_argument('--clip_norm', type=float, default=5)
     parser.add_argument('--epochs', type=int, default=100)
     parser.add_argument('--device', type=str, default='cpu')
     args = parser.parse_args()
@@ -70,7 +73,7 @@ def main():
         pred = generate(network, device=args.device)
         print(' '.join(pred))
 
-        loss = single_epoch(network, loader, optimizer, loss_fn)
+        loss = single_epoch(network, loader, optimizer, loss_fn, args.clip_norm)
         print(loss)
         scheduler.step(loss)
 
