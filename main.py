@@ -37,7 +37,7 @@ def generate(model:Network, device:str='cpu', limit:int=100):
         vec = model.extractor.embedding(torch.LongTensor([idx]).to(device))
         out, hid = model.rnn(vec.view(1,1,-1), hid)
         out = model.linear(out.view(1,-1))
-        idx = out.argmax(-1)
+        idx = torch.softmax(out, -1).multinomial(1)
         word = model.extractor.vocab[idx]
         if word == Corpus.TOKEN_EOS:
             break
