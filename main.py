@@ -59,6 +59,7 @@ def main():
     parser.add_argument('--clip_norm', type=float, default=5)
     parser.add_argument('--epochs', type=int, default=100)
     parser.add_argument('--device', type=str, default='cpu')
+    parser.add_argument('--save', type=str, default='model.pt')
     args = parser.parse_args()
 
     corpus = Corpus(args.corpus)
@@ -69,15 +70,20 @@ def main():
     loss_fn = torch.nn.CrossEntropyLoss(reduction='none')
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=10, verbose=True)
 
+    min_loss = float('inf')
     for epoch in range(args.epochs):
         pred = generate(network, device=args.device)
         print(' '.join(pred))
 
         loss = single_epoch(network, loader, optimizer, loss_fn, args.clip_norm)
         print(loss)
-        print()
         scheduler.step(loss)
 
+        if min_loss > loss:
+            min_loss = loss
+            print('saving to %s' % args.save)
+            torch.save(network, args.save)
+        print()
 
 
 if __name__ == '__main__':
