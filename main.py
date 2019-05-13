@@ -68,7 +68,7 @@ def main():
     network = Network(extractor, args.num_layers).to(args.device)
     optimizer = torch.optim.SGD(network.parameters(), args.lr, args.momentum)
     loss_fn = torch.nn.CrossEntropyLoss(reduction='none')
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=10, verbose=True)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=10, verbose=True, factor=.5)
 
     min_loss = float('inf')
     for epoch in range(args.epochs):
