@@ -28,9 +28,21 @@ def single_epoch(model:Network, loader:DataLoader, optimizer:Optimizer, loss_fn:
     return total_loss
 
 
-def generate(model:Network, words:list):
-    pred = model([words], to_str=True)
-    return pred[0]
+def generate(model:Network, limit:int=100):
+    x = Corpus.TOKEN_BOS
+    hid = None
+    sentence = []
+    for _ in range(limit):
+        idx = model.extractor.word2idx[x]
+        vec = model.extractor.embedding(torch.LongTensor([idx]))
+        out, hid = model.rnn(vec.view(1,1,-1), hid)
+        out = model.linear(out.view(1,-1))
+        idx = out.argmax(-1)
+        word = model.extractor.vocab[idx]
+        if word == Corpus.TOKEN_EOS:
+            break
+        sentence.append(word)
+    return sentence
 
 
 def main():
@@ -55,11 +67,8 @@ def main():
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=10, verbose=True)
 
     for epoch in range(args.epochs):
-        idx = np.random.randint(len(corpus))
-        words, target = corpus[idx]
-        pred = generate(network, words)
+        pred = generate(network)
         print(' '.join(pred))
-        print(' '.join(target))
 
         loss = single_epoch(network, loader, optimizer, loss_fn)
         print(loss)
