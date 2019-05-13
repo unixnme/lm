@@ -75,7 +75,9 @@ def main():
 
         loss = single_epoch(network, loader, optimizer, loss_fn, args.clip_norm)
         print(loss)
+        print()
         scheduler.step(loss)
+
 
 
 if __name__ == '__main__':
