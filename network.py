@@ -7,6 +7,7 @@ class Network(torch.nn.Module):
     def __init__(self, extractor:Extractor, num_layers:int, drop:float):
         super(Network, self).__init__()
         self.extractor = extractor
+        self.dropout = torch.nn.Dropout(drop)
         self.rnn = torch.nn.LSTM(self.extractor.emb_dim,
                                 self.extractor.emb_dim,
                                 num_layers,
@@ -18,6 +19,7 @@ class Network(torch.nn.Module):
 
     def forward(self, sentences:list, to_str:bool=False) -> PackedSequence:
         packed = self.extractor(sentences)
+        packed = PackedSequence(self.dropout(packed.data), packed.batch_sizes)
         packed, _ = self.rnn(packed)
         data = self.linear(packed.data)
         if to_str:
