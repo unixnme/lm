@@ -10,9 +10,9 @@ class Extractor(torch.nn.Module):
         self.device = device
         self.word2idx = {word:idx for idx,word in enumerate(vocab)}
 
-    def forward(self, words:list) -> PackedSequence:
+    def forward(self, sentences:list) -> PackedSequence:
         '''
-        :param words: batch of seq of words
+        :param sentences: batch of seq of words
         '''
         raise NotImplemented
 
@@ -22,13 +22,13 @@ class EmbeddingExtractor(Extractor):
         super(EmbeddingExtractor, self).__init__(vocab, emb_dim, device)
         self.embedding = torch.nn.Embedding(len(vocab), emb_dim)
 
-    def forward(self, words:list) -> PackedSequence:
-        pack = self.get_packed_sequence(words)
+    def forward(self, sentences:list) -> PackedSequence:
+        pack = self.get_packed_sequence(sentences)
         vectors = self.embedding(pack.data)
         return PackedSequence(vectors, pack.batch_sizes)
 
-    def get_packed_sequence(self, words:list):
-        seqs = [torch.LongTensor([self.word2idx[word] for word in s]) for s in words]
+    def get_packed_sequence(self, sentences:list):
+        seqs = [torch.LongTensor([self.word2idx[word] for word in s]) for s in sentences]
         return pack_sequence(seqs).to(self.device)
 
 

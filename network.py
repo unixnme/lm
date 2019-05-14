@@ -15,8 +15,8 @@ class Network(torch.nn.Module):
                                       len(self.extractor.vocab),
                                       False)
 
-    def forward(self, words:list, to_str:bool=False) -> PackedSequence:
-        packed = self.extractor(words)
+    def forward(self, sentences:list, to_str:bool=False) -> PackedSequence:
+        packed = self.extractor(sentences)
         packed, _ = self.rnn(packed)
         data = self.linear(packed.data)
         if to_str:
