@@ -7,7 +7,7 @@ class Network(torch.nn.Module):
     def __init__(self, extractor:Extractor, num_layers:int):
         super(Network, self).__init__()
         self.extractor = extractor
-        self.rnn = torch.nn.GRU(self.extractor.emb_dim,
+        self.rnn = torch.nn.LSTM(self.extractor.emb_dim,
                                 self.extractor.emb_dim,
                                 num_layers
                                 )

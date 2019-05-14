@@ -8,6 +8,7 @@ from torch.optim import Optimizer
 from torch.nn.utils import clip_grad_norm_
 from tqdm import tqdm
 import numpy as np
+import kenlm
 
 
 def single_epoch(model:Network, loader:DataLoader, optimizer:Optimizer, loss_fn:torch.nn.Module, norm:float, train:bool=True):
@@ -65,6 +66,7 @@ def main():
     parser.add_argument('--device', type=str, default='cpu')
     parser.add_argument('--save', type=str, default='model.pt')
     parser.add_argument('--load', type=str, default=None)
+    parser.add_argument('--arpa', type=str, default='tiny_corpus.arpa')
     args = parser.parse_args()
 
     corpus = Corpus(args.corpus)
@@ -77,6 +79,7 @@ def main():
         network.extractor.device = args.device
         network.rnn.flatten_parameters()
 
+    ken_lm = kenlm.LanguageModel(args.arpa)
     optimizer = torch.optim.SGD(network.parameters(), args.lr, args.momentum)
     loss_fn = torch.nn.CrossEntropyLoss(reduction='none')
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=10, verbose=True, factor=.5)
@@ -84,7 +87,9 @@ def main():
     min_loss = float('inf')
     for epoch in range(args.epochs):
         pred = generate(network, device=args.device)
-        print(' '.join(pred))
+        gen_sentence = ' '.join(pred)
+        ppl = ken_lm.perplexity(gen_sentence)
+        print('%s: %f' % (gen_sentence, ppl))
 
         loss = single_epoch(network, loader, optimizer, loss_fn, args.clip_norm)
         print('epochs %d \t loss %.3f' % (epoch, loss))
