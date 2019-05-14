@@ -27,7 +27,7 @@ def single_epoch(model:Network, loader:DataLoader, optimizer:Optimizer, loss_fn:
             optimizer.step()
         total_loss += loss.item()
 
-    return total_loss
+    return total_loss / len(loader)
 
 
 def generate(model:Network, device:str='cpu', limit:int=100):
