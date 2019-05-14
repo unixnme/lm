@@ -89,7 +89,7 @@ def main():
         pred = generate(network, device=args.device)
         gen_sentence = ' '.join(pred)
         ppl = ken_lm.perplexity(gen_sentence)
-        print('%s: %f' % (gen_sentence, ppl))
+        print('%s\nPPL:\t%f' % (gen_sentence, ppl))
 
         loss = single_epoch(network, loader, optimizer, loss_fn, args.clip_norm)
         print('epochs %d \t loss %.3f' % (epoch, loss))
