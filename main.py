@@ -16,6 +16,7 @@ def single_epoch(model:Network, loader:DataLoader, optimizer:Optimizer, loss_fn:
         param.requires_grad = train
 
     total_loss = 0
+    model.train(train)
     for x, target in (loader):
         if train:
             model.zero_grad()
@@ -35,6 +36,7 @@ def generate(model:Network, device:str='cpu', limit:int=100):
     x = Corpus.TOKEN_BOS
     hid = None
     sentence = []
+    model.eval()
     with torch.no_grad():
         for _ in range(limit):
             idx = model.extractor.word2idx[x]
@@ -57,7 +59,8 @@ def main():
     parser.add_argument('--corpus', type=str, default='tiny_corpus.txt', help='corpus to train')
     parser.add_argument('--batch_size', type=int, default=100)
     parser.add_argument('--emb_dim', type=int, default=128)
-    parser.add_argument('--num_layers', type=int, default=1)
+    parser.add_argument('--num_layers', type=int, default=2)
+    parser.add_argument('--drop', type=float, default=0.5)
     parser.add_argument('--num_workers', type=int, default=4)
     parser.add_argument('--lr', type=float, default=0.1)
     parser.add_argument('--momentum', type=float, default=.99)
@@ -73,7 +76,7 @@ def main():
     loader = CorpusLoader(corpus, args.batch_size, True, args.num_workers)
     if args.load is None:
         extractor = EmbeddingExtractor(corpus.vocab, args.emb_dim, args.device)
-        network = Network(extractor, args.num_layers).to(args.device)
+        network = Network(extractor, args.num_layers, drop=args.drop).to(args.device)
     else:
         network = torch.load(args.load, map_location=args.device)
         network.extractor.device = args.device

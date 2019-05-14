@@ -4,12 +4,13 @@ from extractor import Extractor
 from utils import unpack
 
 class Network(torch.nn.Module):
-    def __init__(self, extractor:Extractor, num_layers:int):
+    def __init__(self, extractor:Extractor, num_layers:int, drop:float):
         super(Network, self).__init__()
         self.extractor = extractor
         self.rnn = torch.nn.LSTM(self.extractor.emb_dim,
                                 self.extractor.emb_dim,
-                                num_layers
+                                num_layers,
+                                dropout=drop
                                 )
         self.linear = torch.nn.Linear(self.extractor.emb_dim,
                                       len(self.extractor.vocab),
