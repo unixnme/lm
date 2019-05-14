@@ -75,6 +75,7 @@ def main():
     else:
         network = torch.load(args.load, map_location=args.device)
         network.extractor.device = args.device
+        network.rnn.flatten_parameters()
 
     optimizer = torch.optim.SGD(network.parameters(), args.lr, args.momentum)
     loss_fn = torch.nn.CrossEntropyLoss(reduction='none')
@@ -91,7 +92,6 @@ def main():
 
         if min_loss > loss:
             min_loss = loss
-            network.rnn.flatten_parameters()
             print('saving to %s' % args.save)
             torch.save(network, args.save)
         print()
