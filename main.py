@@ -91,6 +91,7 @@ def main():
 
         if min_loss > loss:
             min_loss = loss
+            network.rnn.flatten_parameters()
             print('saving to %s' % args.save)
             torch.save(network, args.save)
         print()
