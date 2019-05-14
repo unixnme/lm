@@ -60,12 +60,16 @@ def main():
     parser.add_argument('--epochs', type=int, default=100)
     parser.add_argument('--device', type=str, default='cpu')
     parser.add_argument('--save', type=str, default='model.pt')
+    parser.add_argument('--load', type=str, default=None)
     args = parser.parse_args()
 
     corpus = Corpus(args.corpus)
     loader = CorpusLoader(corpus, args.batch_size, True, args.num_workers)
     extractor = EmbeddingExtractor(corpus.vocab, args.emb_dim, args.device)
-    network = Network(extractor, args.num_layers).to(args.device)
+    if args.load is None:
+        network = Network(extractor, args.num_layers).to(args.device)
+    else:
+        network = torch.load(args.load, map_location=args.device)
     optimizer = torch.optim.SGD(network.parameters(), args.lr, args.momentum)
     loss_fn = torch.nn.CrossEntropyLoss(reduction='none')
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=10, verbose=True, factor=.5)
