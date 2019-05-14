@@ -86,7 +86,7 @@ def main():
         print(' '.join(pred))
 
         loss = single_epoch(network, loader, optimizer, loss_fn, args.clip_norm)
-        print(loss)
+        print('epochs %d \t loss %.3f' % (epoch, loss))
         scheduler.step(loss)
 
         if min_loss > loss:
