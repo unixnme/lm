@@ -34,16 +34,20 @@ def generate(model:Network, device:str='cpu', limit:int=100):
     x = Corpus.TOKEN_BOS
     hid = None
     sentence = []
-    for _ in range(limit):
-        idx = model.extractor.word2idx[x]
-        vec = model.extractor.embedding(torch.LongTensor([idx]).to(device))
-        out, hid = model.rnn(vec.view(1,1,-1), hid)
-        out = model.linear(out.view(1,-1))
-        idx = torch.softmax(out, -1).multinomial(1)
-        word = model.extractor.vocab[idx]
-        if word == Corpus.TOKEN_EOS:
-            break
-        sentence.append(word)
+    with torch.no_grad():
+        for _ in range(limit):
+            idx = model.extractor.word2idx[x]
+            vec = model.extractor.embedding(torch.LongTensor([idx]).to(device))
+            out, hid = model.rnn(vec.view(1,1,-1), hid)
+            out = model.linear(out.view(1,-1))
+            prob = torch.softmax(out, -1).view(-1)
+            # word2p = [(model.extractor.vocab[idx], p.item()) for idx,p in enumerate(prob)]
+            # word2p.sort(key=lambda x: x[1], reverse=True)
+            idx = prob.multinomial(1)
+            word = model.extractor.vocab[idx]
+            if word == Corpus.TOKEN_EOS:
+                break
+            sentence.append(word)
     return sentence
 
 
@@ -65,11 +69,13 @@ def main():
 
     corpus = Corpus(args.corpus)
     loader = CorpusLoader(corpus, args.batch_size, True, args.num_workers)
-    extractor = EmbeddingExtractor(corpus.vocab, args.emb_dim, args.device)
     if args.load is None:
+        extractor = EmbeddingExtractor(corpus.vocab, args.emb_dim, args.device)
         network = Network(extractor, args.num_layers).to(args.device)
     else:
         network = torch.load(args.load, map_location=args.device)
+        network.extractor.device = args.device
+
     optimizer = torch.optim.SGD(network.parameters(), args.lr, args.momentum)
     loss_fn = torch.nn.CrossEntropyLoss(reduction='none')
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=10, verbose=True, factor=.5)
