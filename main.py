@@ -37,9 +37,9 @@ def generate(model:Network, device:str='cpu', limit:int=100):
     hid = None
     sentence = []
     model.eval()
+    idx = model.extractor.word2idx[x]
     with torch.no_grad():
         for _ in range(limit):
-            idx = model.extractor.word2idx[x]
             vec = model.extractor.embedding(torch.LongTensor([idx]).to(device))
             out, hid = model.rnn(vec.view(1,1,-1), hid)
             out = model.linear(out.view(1,-1))
@@ -57,10 +57,10 @@ def generate(model:Network, device:str='cpu', limit:int=100):
 def main():
     parser = argparse.ArgumentParser('LM main')
     parser.add_argument('--corpus', type=str, default='tiny_corpus.txt', help='corpus to train')
-    parser.add_argument('--batch_size', type=int, default=100)
+    parser.add_argument('--batch_size', type=int, default=128)
     parser.add_argument('--emb_dim', type=int, default=128)
-    parser.add_argument('--num_layers', type=int, default=2)
-    parser.add_argument('--drop', type=float, default=0.5)
+    parser.add_argument('--num_layers', type=int, default=1)
+    parser.add_argument('--drop', type=float, default=0.1)
     parser.add_argument('--num_workers', type=int, default=4)
     parser.add_argument('--lr', type=float, default=0.1)
     parser.add_argument('--momentum', type=float, default=.99)
