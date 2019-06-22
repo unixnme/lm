@@ -66,7 +66,7 @@ def main():
     parser.add_argument('--momentum', type=float, default=.99)
     parser.add_argument('--clip_norm', type=float, default=5)
     parser.add_argument('--epochs', type=int, default=100)
-    parser.add_argument('--device', type=str, default='cpu')
+    parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--save', type=str, default='model.pt')
     parser.add_argument('--load', type=str, default=None)
     parser.add_argument('--arpa', type=str, default='tiny_corpus.arpa')
