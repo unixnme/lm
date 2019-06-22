@@ -19,11 +19,11 @@ def single_epoch(model:Network, loader:DataLoader, optimizer:Optimizer, loss_fn:
     total_loss = 0
     model.train(train)
     ppl = []
-    for x, target in (loader):
+    for x, y in (loader):
         if train:
             model.zero_grad()
         pred = model(x)
-        target = model.extractor.get_packed_sequence(target)
+        target = model.extractor.get_packed_sequence(y)
         loss = F.nll_loss(pred, target.data)
         if train:
             loss.backward()
@@ -42,16 +42,16 @@ def generate(model:Network, device:str='cpu', limit:int=100):
     hid = None
     sentence = []
     model.eval()
+    idx = model.extractor.word2idx[x]
     with torch.no_grad():
         for _ in range(limit):
-            idx = model.extractor.word2idx[x]
             vec = model.extractor.embedding(torch.LongTensor([idx]).to(device))
             out, hid = model.rnn(vec.view(1,1,-1), hid)
             out = model.linear(out.view(1,-1))
             prob = torch.softmax(out, -1).view(-1)
             # word2p = [(model.extractor.vocab[idx], p.item()) for idx,p in enumerate(prob)]
             # word2p.sort(key=lambda x: x[1], reverse=True)
-            idx = prob.multinomial(1)
+            idx = prob.multinomial(1).item()
             word = model.extractor.vocab[idx]
             if word == Corpus.TOKEN_EOS:
                 break
