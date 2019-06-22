@@ -8,7 +8,7 @@ class Network(torch.nn.Module):
         super(Network, self).__init__()
         self.extractor = extractor
         self.dropout = torch.nn.Dropout(drop)
-        self.rnn = torch.nn.LSTM(self.extractor.emb_dim,
+        self.rnn = torch.nn.GRU(self.extractor.emb_dim,
                                 self.extractor.emb_dim,
                                 num_layers,
                                 dropout=drop

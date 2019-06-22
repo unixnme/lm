@@ -22,10 +22,10 @@ def single_epoch(model:Network, loader:DataLoader, optimizer:Optimizer, loss_fn:
             model.zero_grad()
         pred = model(x)
         target = model.extractor.get_packed_sequence(target)
-        loss = loss_fn(pred.data, target.data).mean()
+        loss = loss_fn(pred.data, target.data)
         if train:
             loss.backward()
-            clip_grad_norm_(model.parameters(), norm)
+            #clip_grad_norm_(model.parameters(), norm)
             optimizer.step()
         total_loss += loss.item()
 
@@ -57,12 +57,12 @@ def generate(model:Network, device:str='cpu', limit:int=100):
 def main():
     parser = argparse.ArgumentParser('LM main')
     parser.add_argument('--corpus', type=str, default='tiny_corpus.txt', help='corpus to train')
-    parser.add_argument('--batch_size', type=int, default=100)
+    parser.add_argument('--batch_size', type=int, default=128)
     parser.add_argument('--emb_dim', type=int, default=128)
-    parser.add_argument('--num_layers', type=int, default=2)
-    parser.add_argument('--drop', type=float, default=0.5)
+    parser.add_argument('--num_layers', type=int, default=1)
+    parser.add_argument('--drop', type=float, default=0.0)
     parser.add_argument('--num_workers', type=int, default=4)
-    parser.add_argument('--lr', type=float, default=0.1)
+    parser.add_argument('--lr', type=float, default=0.001)
     parser.add_argument('--momentum', type=float, default=.99)
     parser.add_argument('--clip_norm', type=float, default=5)
     parser.add_argument('--epochs', type=int, default=100)
@@ -83,8 +83,9 @@ def main():
         network.rnn.flatten_parameters()
 
     ken_lm = kenlm.LanguageModel(args.arpa)
-    optimizer = torch.optim.SGD(network.parameters(), args.lr, args.momentum)
-    loss_fn = torch.nn.CrossEntropyLoss(reduction='none')
+    optimizer = torch.optim.RMSprop(network.parameters(), args.lr)
+    #optimizer = torch.optim.SGD(network.parameters(), args.lr, args.momentum)
+    loss_fn = torch.nn.CrossEntropyLoss()
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=10, verbose=True, factor=.5)
 
     min_loss = float('inf')
