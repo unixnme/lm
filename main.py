@@ -18,6 +18,7 @@ def single_epoch(model:Network, loader:DataLoader, optimizer:Optimizer, loss_fn:
 
     total_loss = 0
     model.train(train)
+    ppl = []
     for x, target in (loader):
         if train:
             model.zero_grad()
@@ -29,8 +30,11 @@ def single_epoch(model:Network, loader:DataLoader, optimizer:Optimizer, loss_fn:
             #clip_grad_norm_(model.parameters(), norm)
             optimizer.step()
         total_loss += loss.item()
+        prob = pred.exp()[torch.arange(0, target.data.shape[0], dtype=torch.int64), target.data]
+        perplexity = 2 ** prob.log2().neg().mean().item()
+        ppl.append(perplexity)
 
-    return total_loss / len(loader)
+    return total_loss / len(loader), ppl
 
 
 def generate(model:Network, device:str='cpu', limit:int=100):
@@ -96,8 +100,8 @@ def main():
         ppl = ken_lm.perplexity(gen_sentence)
         print('%s\nPPL:\t%f' % (gen_sentence, ppl))
 
-        loss = single_epoch(network, loader, optimizer, loss_fn, args.clip_norm)
-        print('epochs %d \t loss %.3f' % (epoch, loss))
+        loss, ppl = single_epoch(network, loader, optimizer, loss_fn, args.clip_norm)
+        print('epochs %d \t ppl %.3f' % (epoch, np.mean(ppl)))
         scheduler.step(loss)
 
         if min_loss > loss:
