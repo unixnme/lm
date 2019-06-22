@@ -1,5 +1,6 @@
 import torch
 from torch.nn.utils.rnn import PackedSequence
+import torch.nn.functional as F
 from extractor import Extractor
 from utils import unpack
 
@@ -27,7 +28,7 @@ class Network(torch.nn.Module):
             word_pack = [self.extractor.vocab[i] for i in max_idx.cpu()]
             return unpack(word_pack, packed.batch_sizes)
         else:
-            return data
+            return F.log_softmax(data, dim=-1)
 
 
 if __name__ == '__main__':
