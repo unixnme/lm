@@ -27,7 +27,7 @@ class Network(torch.nn.Module):
             word_pack = [self.extractor.vocab[i] for i in max_idx.cpu()]
             return unpack(word_pack, packed.batch_sizes)
         else:
-            return PackedSequence(data, packed.batch_sizes)
+            return data
 
 
 if __name__ == '__main__':

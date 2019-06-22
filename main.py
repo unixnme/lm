@@ -22,7 +22,7 @@ def single_epoch(model:Network, loader:DataLoader, optimizer:Optimizer, loss_fn:
             model.zero_grad()
         pred = model(x)
         target = model.extractor.get_packed_sequence(target)
-        loss = loss_fn(pred.data, target.data)
+        loss = loss_fn(pred, target.data)
         if train:
             loss.backward()
             #clip_grad_norm_(model.parameters(), norm)
